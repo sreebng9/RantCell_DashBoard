@@ -16,6 +16,8 @@ Feature: Perform the ping Test & caprure the result
     And I can see detailed details by clicking on show details link
     When I click on Run Test then I fill the details required for ping test and click on start button
     Then I can see the staus in table view format. 
+    And I select the test group that we created and I delete the particular group
+    And I logoff from the RantCell
      
     
     

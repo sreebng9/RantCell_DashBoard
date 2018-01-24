@@ -1,7 +1,7 @@
-@basic
+@basicLoginTest
 Feature: Test the Login functionality of Rant Cell
   I want to Test the Login functionality
-
+@basic1
   Scenario: Testing the login functionality with valid users
     Given I am on RantCell pre-login page
     When I enter username "testu321@gmail.com" and I enter password "@rantcell"

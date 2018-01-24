@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
+import javax.management.PersistentMBean;
+
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -46,10 +48,13 @@ public class GlueCode {
 		try {
 			FileInputStream fi=new FileInputStream("src\\test\\resources\\locators.properties");
 			FileInputStream fii=new FileInputStream("src\\test\\resources\\registrationDetails.properties");
+			FileInputStream fiii=new FileInputStream("src\\test\\resources\\testData.properties");
+			
 			
 			prop=new Properties();
 			prop.load(fi);
 			prop.load(fii);
+			prop.load(fiii);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -63,11 +68,13 @@ public class GlueCode {
 	
 	@After
 	public void error(Scenario s) throws IOException{
+		
 		if (s.isFailed()){
 			Reporter.addScreenCaptureFromPath(takeScreenShot());
 			 //System.out.println(takeScreenShot());
 			 Reporter.addScreenCast(takeScreenShot());
 		}
+		//driver.quit();
 	}	
 	public void addScreenShot() throws IOException{
 		Reporter.addScreenCaptureFromPath(takeScreenShot());		
@@ -139,8 +146,8 @@ public class GlueCode {
 	public void i_enter_username_and_I_enter_password(String arg1, String arg2) throws Throwable {
 	   click("loginButton");
 		//enterText("login",arg1);
-	   enterText("userName",arg1);
-	   enterText("password",arg2);
+	   enterText("userName",prop.getProperty("d_userName"));
+	   enterText("password",prop.getProperty("d_password"));
 	   
 	}
 
@@ -221,6 +228,7 @@ public class GlueCode {
 	
 	@When("^I logoff from the RantCell$")
 	public void I_logoff() throws Throwable {
+		Thread.sleep(2000);
 	   click("customerName");
 	   click("logOff");   
 		}
@@ -252,9 +260,9 @@ public class GlueCode {
 
 	@When("^I input current passord \"([^\"]*)\" and new password \"([^\"]*)\" and click on update passord$")
 	public void i_input_current_passord_and_new_password_and_click_on_update_passord(String arg1, String arg2) throws Throwable {
-	    enterText("oldPassword", arg1);
-	    enterText("newPassword", arg2);
-	    enterText("confNewPassword", arg2);
+	    enterText("oldPassword", prop.getProperty("d_currentPassword"));
+	    enterText("newPassword", prop.getProperty("d_newPassword"));
+	    enterText("confNewPassword", prop.getProperty("d_newPassword"));
 	    click("upDatePasswordButton");
 	    
 	}
@@ -271,8 +279,8 @@ public class GlueCode {
 		   Thread.sleep(10000);
 		   click("loginButton");
 			
-		   enterText("userName",arg1);
-		   enterText("password",arg2);
+		   enterText("userName",prop.getProperty("d_userName"));
+		   enterText("password",prop.getProperty("d_newPassword"));
 		   click("login");		
 			addScreenShot();
 			Thread.sleep(10000);	
@@ -313,8 +321,8 @@ public class GlueCode {
 	    
 	click("adminLogin");
 	
-	   enterText("userName",arg1);
-	   enterText("password",arg2);	
+	enterText("userName",prop.getProperty("d_adminUserName"));
+	   enterText("password",prop.getProperty("d_adminPassword"));
 	}
 
 	@When("^I click on User Management menu located on left side$")
@@ -405,20 +413,99 @@ public class GlueCode {
 		addScreenShot();
 	}
 	
-	
+	public int j=0;
 	@Then("^I click on Remote Test and I click on Add test group$")
 	public void i_click_on_Remote_Test_and_I_click_on_Add_test_group() throws Throwable {
-	    click("remoteTest");
-	    Thread.sleep(3000);
-	    click("addTestGroup");
+	    click("remoteTest");  
+
+	    Thread.sleep(5000);
+	    
+		
+	    if(groupPresent()) {
+	    
+	    	List<WebElement> testGroupList=driver.findElements(attribute(prop.getProperty("createdTestGroupsList")));
+	 	   System.out.println("testGroupList no: " +testGroupList.size());
+	 		
+	 	    for (WebElement webElement : testGroupList) {
+	 	    	++j;
+	 			if(webElement.getText().contains(prop.getProperty("d_EnterGroupName"))){				
+	 				webElement.click();
+	 			}
+	 		}
+	 	    
+	 		List<WebElement> list=driver.findElements(By.xpath("(//ul[@id='responsivedropdownmenu'])["+j+"]/li/a"));
+	 		
+	 		System.out.println("I select the test" +list.size());
+	 		for (WebElement webElement : list) {
+	 			System.out.println(webElement.getText());
+	 		}
+	 		
+	 		for (WebElement webElement : list) {
+	 			if(webElement.getText().contains("Edit Group")){
+	 				Actions a=new Actions(driver);
+	 				Thread.sleep(1000);
+	 				a.moveToElement(webElement).moveToElement(driver.findElement(By.xpath("//*[@id='responsivesubmenu']/li[3]"))).click().build().perform();;
+	 				
+	 				Thread.sleep(2000);
+	 				driver.findElement(By.xpath("//*[@id='deletegroup']/div/div/div[3]/button[1]")).click();
+	 				Thread.sleep(8000);
+	 				break;
+	 				
+	 			}
+	 		}
+	 }	
+	    	
+	    	
+	    	
+	    	
+	    	
+	    	
+		/*List<WebElement> testGroupList=driver.findElements(attribute(prop.getProperty("createdTestGroupsList")));
+	  // System.out.println("testGroupList no: " +testGroupList.size());
+		
+		for (int i = 0; i < testGroupList.size(); i++) {
+			testGroupList.get(i).click();
+			//int j=i+1;
+			List<WebElement> list=driver.findElements(By.xpath("(//ul[@id='responsivedropdownmenu'])["+(i+1)+"]/li/a"));
+						
+			for (WebElement webElement : list) {
+				if(webElement.getText().contains("Edit Group")){
+					Actions a=new Actions(driver);
+					Thread.sleep(1000);
+					a.moveToElement(webElement).moveToElement(driver.findElement(By.xpath("//*[@id='responsivesubmenu']/li[3]"))).click().build().perform();;
+					
+					Thread.sleep(1000);
+					driver.findElement(By.xpath("//*[@id='deletegroup']/div/div/div[3]/button[1]")).click();
+					Thread.sleep(10000);
+					break;
+			}
+		
+		}
+	}
+}*/	
+	   Thread.sleep(3000);  
+
+		click("addTestGroup");
 	    
 	}
+
+private boolean groupPresent() {
+	try {
+		driver.findElements(attribute(prop.getProperty("createdTestGroupsList")));
+		return true;
+	} catch (Exception e) {
+		
+		return false;
+	}
+	
+}
+
 
 	public static String groupName;
 	@When("^I enter group name as \"([^\"]*)\" and click on next button$")
 	public void i_enter_group_name_as_and_click_on_next_button(String arg1) throws Throwable {
-		groupName=arg1;
-		enterText("enterGroupName", arg1);
+		groupName=prop.getProperty("d_EnterGroupName");
+		enterText("enterGroupName", prop.getProperty("d_EnterGroupName"));
 	    click("nextButton");
 	    Thread.sleep(4000);
 	    if(driver.findElement(By.id("Groupform")).isDisplayed()){
@@ -464,8 +551,11 @@ public class GlueCode {
 	@When("^I select the test group that we created and check for devices$")
 	public void i_select_the_test_group_that_we_created_and_check_for_devices() throws Throwable {
 		Thread.sleep(3000);
+		
+		
+		
 		List<WebElement> list=driver.findElements(By.xpath("(//ul[@id='responsivedropdownmenu'])["+i+"]/li/a"));
-		System.out.println("I select the test" +list.size());
+		System.out.println("I select the test group no : " +list.size());
 		for (WebElement webElement : list) {
 			System.out.println(webElement.getText());
 		}
@@ -485,12 +575,12 @@ public class GlueCode {
 
 	@Then("^I can see detailed details by clicking on show details link$")
 	public void i_can_see_detailed_details_by_clicking_on_show_details_link() throws Throwable {
-		Thread.sleep(5000);
+		/*Thread.sleep(5000);
 		System.out.println(attribute(prop.getProperty("showDetails")));
 		click("showDetails");
 		
 		addScreenShot();
-		click("xButton");
+		click("xButton");*/
 		Thread.sleep(3000);
 		click("closeButton");
 	}
@@ -635,8 +725,8 @@ public class GlueCode {
 	@When("^I enter the B party phone number as \"([^\"]*)\" and wait duration \"([^\"]*)\" seconds and proceed to start test$")
 	public void i_click_on_a(String arg1, String arg2) throws Throwable {
 		
-			driver.findElement(By.id("smsnumber")).sendKeys(arg1);
-			driver.findElement(By.id("smsduration")).sendKeys(arg2);
+			driver.findElement(By.id("smsnumber")).sendKeys(prop.getProperty("d_s_call_mobilenumber"));
+			driver.findElement(By.id("smsduration")).sendKeys(prop.getProperty("wait_duration"));
 			
 			  // ok button
 			driver.findElement(By.xpath("//*[@id='smstest']/div/div/div[3]/div/a[1]")).click();
@@ -680,12 +770,20 @@ public class GlueCode {
 		    	
 				if(webElement.getText().contains(groupName)){				
 					webElement.click();
+					Thread.sleep(1000);
 				}
 			}
 		List<WebElement> list=driver.findElements(By.xpath("(//ul[@id='responsivedropdownmenu'])["+i+"]/li/a"));
+		
 		for (WebElement webElement : list) {
-			if(webElement.getText().contains("Run Test")){
-				webElement.click();
+			
+				System.out.println(webElement.getText());
+			}
+		
+		
+		for (WebElement webElement1 : list) {
+			if(webElement1.getText().contains("Run Test")){
+				webElement1.click();
 			}
 		}
 		  enterText("testName", prop.getProperty("TestName"));
@@ -702,9 +800,9 @@ public class GlueCode {
 	@When("^I enter the B party phone number as \"([^\"]*)\" and call duration \"([^\"]*)\" seconds and proceed to start test$")
 	public void i_click_on_a_(String arg1, String arg2) throws Throwable { 
 		
-			driver.findElement(By.id("number")).sendKeys(arg1);
+			driver.findElement(By.id("number")).sendKeys(prop.getProperty("d_c_call_mobilenumber"));
 			driver.findElement(By.id("duration")).clear();
-			driver.findElement(By.id("duration")).sendKeys(arg2);
+			driver.findElement(By.id("duration")).sendKeys(prop.getProperty("d_call_duration"));
 			
 			  // ok button
 			driver.findElement(By.xpath("//*[@id='calltest']/div/div/div[3]/div/a[1]")).click();
@@ -772,7 +870,7 @@ public class GlueCode {
 			driver.findElement(By.id("defaulturl")).click();
 			Thread.sleep(1000);
 			driver.findElement(By.id("http")).clear();
-			driver.findElement(By.id("http")).sendKeys(arg1);
+			driver.findElement(By.id("http")).sendKeys(prop.getProperty("d_http_url"));
 			
 			  // ok button
 			
@@ -849,10 +947,47 @@ public class GlueCode {
 	    Thread.sleep(3000);
 	}
 	
+	@Then("^I select the test group that we created and I delete the particular group$")
+	public void i_seletyct() throws Throwable {
+		Thread.sleep(3000);
+		click("remoteTest");
 	
+	    
+	    Thread.sleep(5000);
+		List<WebElement> testGroupList=driver.findElements(attribute(prop.getProperty("createdTestGroupsList")));
+	   System.out.println("testGroupList no: " +testGroupList.size());
+		
+	    for (WebElement webElement : testGroupList) {
+	    	
+			if(webElement.getText().contains(groupName)){				
+				webElement.click();
+			}
+		}
+	    
+		List<WebElement> list=driver.findElements(By.xpath("(//ul[@id='responsivedropdownmenu'])["+i+"]/li/a"));
+		
+		System.out.println("I select the test" +list.size());
+		for (WebElement webElement : list) {
+			System.out.println(webElement.getText());
+		}
+		
+		for (WebElement webElement : list) {
+			if(webElement.getText().contains("Edit Group")){
+				Actions a=new Actions(driver);
+				Thread.sleep(1000);
+				a.moveToElement(webElement).moveToElement(driver.findElement(By.xpath("//*[@id='responsivesubmenu']/li[3]"))).click().build().perform();;
+				
+				Thread.sleep(2000);
+				driver.findElement(By.xpath("//*[@id='deletegroup']/div/div/div[3]/button[1]")).click();
+				Thread.sleep(5000);
+				break;
+				
+			}
+		}
 }	
+	
 
-
+}
  
 		
 

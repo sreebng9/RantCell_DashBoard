@@ -17,6 +17,8 @@ Feature: Perform the sms Test & caprure the result
     When I enter mandetory run test details and check on http test
     And I fill the mandetory fields "www.google.com" in http speed test and proceed to start test
     Then I can see the staus in table view format. 
+    And I select the test group that we created and I delete the particular group
+    And I logoff from the RantCell
      
     
     

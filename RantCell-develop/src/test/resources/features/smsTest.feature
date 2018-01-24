@@ -16,7 +16,9 @@ Feature: Perform the sms Test & caprure the result
     And I can see detailed details by clicking on show details link
     When I enter mandetory run test details and check on sms test
     And I enter the B party phone number as "9655858693" and wait duration "30" seconds and proceed to start test
-    Then I can see the staus in table view format. 
+    Then I can see the staus in table view format.
+    And I select the test group that we created and I delete the particular group
+    
      
     
     
